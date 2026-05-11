@@ -1,0 +1,227 @@
+---
+title: "Spotkanie 2: Analiza sentymentu i emocji"
+output: html_document
+---
+
+# Spotkanie 2: Analiza sentymentu i emocji
+
+To spotkanie przechodzi od generowania do klasyfikacji. Pracujesz na korpusie politycznym i naukowym, a wynik modelu traktujesz jak decyzję analityczną, którą trzeba umieć uzasadnić metodologicznie.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S02")
+```
+
+## ETAP LEARN: ćwiczymy z prowadzącym
+
+## Zadanie 1: Sentyment polityczny
+
+**Framework: RTF**
+
+RTF w klasyfikacji powinien jasno definiować kategorie:
+
+- **Role**: wskaż kompetencję modelu, np. analityk dyskursu politycznego.
+- **Task**: nazwij zadanie klasyfikacyjne i materiał.
+- **Format**: wymuś jedną etykietę z zamkniętej listy, bez komentarza.
+
+W klasyfikacji etykiety muszą być rozłączne na tyle, na ile pozwala materiał.
+
+```{r zad1}
+moj_prompt_zad1 <- "
+Role: Jesteś analitykiem dyskursu politycznego.
+Task: Oceń dominujący sentyment fragmentu przemówienia. Pozytywny oznacza ton afirmujący, nadzieję lub sukces; negatywny oznacza zagrożenie, kryzys lub krytykę; neutralny oznacza opis bez wyraźnej oceny.
+Format: Odpowiedz wyłącznie jedną etykietą: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad1 <- klasyfikuj_zbior(
+  korpus_polityczny,
+  moj_prompt_zad1,
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  model = "qwen3-4b",
+  n = 15
+)
+pokaz_rozklad(wyniki_zad1, "klasyfikacja", "Sentyment polityczny")
+pokaz_tabele(wyniki_zad1)
+```
+
+### Pytania do refleksji
+
+1. Czy kategoria neutralna jest jasna?
+2. Czy fragmenty polityczne częściej brzmią pozytywnie przez retorykę mobilizacji?
+3. Jak można poprawić definicję sentymentu dla przemówień?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o rozkładzie sentymentu i jakości promptu.]
+"
+```
+
+## Zadanie 2: Emocje polityczne
+
+**Framework: CO-STAR**
+
+CO-STAR nadaje się do bardziej złożonych klasyfikacji, bo rozdziela kontekst i oczekiwany efekt:
+
+- **Context**: jaki to materiał i dlaczego emocje są specyficzne dla gatunku.
+- **Objective**: co ma zostać sklasyfikowane.
+- **Style**: zwięzły, techniczny, bez uzasadnień.
+- **Tone**: neutralny analitycznie.
+- **Audience**: badacz analizujący dyskurs.
+- **Response**: jedna etykieta z listy.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Context: Analizujesz fragmenty przemówień politycznych, w których emocje często są retoryczne, a nie osobiste.
+Objective: Wybierz dominującą emocję polityczną.
+Style: Klasyfikacja krótka i techniczna.
+Tone: Neutralny, analityczny.
+Audience: Badacz dyskursu publicznego.
+Response: Odpowiedz wyłącznie jedną etykietą: nadzieja, strach, duma, gniew, solidarność, determinacja, neutralne.
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- klasyfikuj_zbior(
+  korpus_polityczny,
+  moj_prompt_zad2,
+  etykiety = c("nadzieja", "strach", "duma", "gniew", "solidarność", "determinacja", "neutralne"),
+  model = "qwen3-4b",
+  n = 15
+)
+pokaz_rozklad(wyniki_zad2, "klasyfikacja", "Emocje polityczne")
+pokaz_tabele(wyniki_zad2)
+```
+
+### Pytania do refleksji
+
+1. Które emocje najłatwiej się mylą?
+2. Czy prompt odróżnia nadzieję od determinacji?
+3. Czy lista kategorii jest kompletna dla przemówień politycznych?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o emocjach politycznych i problemach klasyfikacji.]
+"
+```
+
+## ETAP CHALLENGE: piszesz własne prompty
+
+## Zadanie 3: Emocje naukowe
+
+**Framework: CO-STAR**
+
+W nauce emocje są zwykle słabsze i bardziej pośrednie. CO-STAR pomaga wymusić inny kontekst:
+
+- **Context**: abstrakty i teksty naukowe komunikują pewność, ostrożność albo entuzjazm.
+- **Objective**: klasyfikacja tonu epistemicznego, nie nastroju autora.
+- **Style**: jedna etykieta.
+- **Tone**: metodologicznie ostrożny.
+- **Audience**: osoba walidująca klasyfikacje.
+- **Response**: zamknięta lista odpowiedzi.
+
+```{r zad3}
+moj_prompt_zad3 <- "
+[CHALLENGE]
+Uzupełnij prompt CO-STAR do klasyfikacji tonu/emocji naukowej.
+
+Context:
+Objective:
+Style:
+Tone:
+Audience:
+Response: Odpowiedz wyłącznie jedną etykietą: pewność, wątpliwość, entuzjazm, ostrożność, neutralne.
+
+Tekst: {text}
+"
+
+wyniki_zad3 <- klasyfikuj_zbior(
+  korpus_naukowy,
+  moj_prompt_zad3,
+  etykiety = c("pewność", "wątpliwość", "entuzjazm", "ostrożność", "neutralne"),
+  model = "qwen3-4b",
+  n = 15
+)
+pokaz_rozklad(wyniki_zad3, "klasyfikacja", "Emocje naukowe")
+pokaz_tabele(wyniki_zad3)
+```
+
+### Pytania do refleksji
+
+1. Czy emocje naukowe są trudniejsze do wykrycia niż polityczne?
+2. Jak model rozpoznaje ostrożność?
+3. Czy etykieta neutralne jest nadużywana?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o różnicy między emocjami politycznymi i naukowymi.]
+"
+```
+
+## Zadanie 4: RTF kontra CO-STAR
+
+**Framework: RTF i CO-STAR**
+
+W porównaniu frameworków zmieniasz strukturę promptu, ale nie zmieniasz zadania:
+
+- RTF jest krótszy i mocno operacyjny.
+- CO-STAR lepiej opisuje kontekst, odbiorcę i oczekiwaną odpowiedź.
+- Ten sam korpus i te same etykiety pozwalają porównać wpływ frameworka.
+
+```{r zad4}
+moj_prompt_zad4_rtf <- "
+[CHALLENGE]
+Napisz własny prompt RTF do klasyfikacji sentymentu politycznego.
+
+Role:
+Task:
+Format: Zwróć tylko jedną etykietę: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+moj_prompt_zad4_costar <- "
+[CHALLENGE]
+Napisz własny prompt CO-STAR do tego samego zadania.
+
+Context:
+Objective:
+Style:
+Tone:
+Audience:
+Response: Zwróć tylko jedną etykietę: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- porownaj_frameworki(
+  korpus_polityczny,
+  list(RTF = moj_prompt_zad4_rtf, COSTAR = moj_prompt_zad4_costar),
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  model = "qwen3-4b",
+  n = 10
+)
+pokaz_porownanie(wyniki_zad4, c("RTF", "COSTAR"), "RTF kontra CO-STAR")
+pokaz_tabele(wyniki_zad4)
+```
+
+### Pytania do refleksji
+
+1. Czy frameworki dały takie same etykiety?
+2. Kiedy dłuższy prompt jest metodologicznie uzasadniony?
+3. Który prompt łatwiej opisać w części metodycznej raportu?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań porównujących RTF i CO-STAR.]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zad1 = wyniki_zad1, zad2 = wyniki_zad2, zad3 = wyniki_zad3, zad4 = wyniki_zad4),
+  spotkanie = "s02",
+  nazwa = "sentyment_emocje"
+)
+```

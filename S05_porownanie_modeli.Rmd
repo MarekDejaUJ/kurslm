@@ -1,0 +1,273 @@
+---
+title: "Spotkanie 5: Porównanie modeli i frameworków"
+output: html_document
+---
+
+# Spotkanie 5: Porównanie modeli i frameworków
+
+Tu traktujesz model, framework, korpus i tryb thinking jako czynniki eksperymentu. Celem nie jest znalezienie jednej najlepszej odpowiedzi, ale zobaczenie, co najbardziej zmienia wynik.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S05")
+```
+
+## ETAP LEARN: ćwiczymy z prowadzącym
+
+## Zadanie 1: Jeden prompt, cztery modele
+
+**Framework: RTF**
+
+RTF w porównaniu modeli powinien być możliwie prosty:
+
+- **Role**: taka sama dla wszystkich modeli.
+- **Task**: jedno zadanie i jedna lista etykiet.
+- **Format**: jedna etykieta, żeby porównanie było mierzalne.
+
+```{r zad1}
+moj_prompt_zad1 <- "
+Role: Jesteś analitykiem sentymentu w przemówieniach politycznych.
+Task: Sklasyfikuj dominujący sentyment fragmentu.
+Format: Odpowiedz wyłącznie jedną etykietą: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad1 <- porownaj_modele_zbior(
+  korpus_polityczny,
+  moj_prompt_zad1,
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  modele = c("qwen3-0.6b", "bielik-4.5b", "qwen3-4b", "phi4-mini"),
+  n = 8
+)
+pokaz_porownanie(wyniki_zad1, c("model_alias", "klasyfikacja"), "Jeden prompt x cztery modele")
+pokaz_tabele(wyniki_zad1)
+```
+
+### Pytania do refleksji
+
+1. Który model daje najbardziej stabilny rozkład?
+2. Czy mniejszy model częściej zwraca etykiety nierozpoznane?
+3. Jak odróżnić błąd modelu od niejasnego promptu?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o wpływie modelu na wynik.]
+"
+```
+
+## Zadanie 2: Jeden model, dwa korpusy
+
+**Framework: CO-STAR**
+
+CO-STAR pozwala jawnie utrzymać ten sam cel przy zmianie materiału:
+
+- **Context**: korpus może być polityczny albo naukowy.
+- **Objective**: klasyfikujesz ten sam wymiar.
+- **Style/Tone**: bez komentarza.
+- **Audience**: badacz porównujący korpusy.
+- **Response**: jedna lista etykiet.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Context: Analizujesz fragment tekstu, który może pochodzić z dyskursu politycznego albo naukowego.
+Objective: Określ dominujący sentyment lub ton oceniający.
+Style: Klasyfikacja techniczna.
+Tone: Neutralny.
+Audience: Badacz porównujący korpusy.
+Response: Odpowiedz wyłącznie jedną etykietą: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- porownaj_korpusy(
+  list(polityczny = korpus_polityczny, naukowy = korpus_naukowy),
+  moj_prompt_zad2,
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  model = "qwen3-4b",
+  n = 10
+)
+pokaz_porownanie(wyniki_zad2, c("korpus", "klasyfikacja"), "Jeden model x dwa korpusy")
+pokaz_tabele(wyniki_zad2)
+```
+
+### Pytania do refleksji
+
+1. Czy ten sam prompt pasuje do obu korpusów?
+2. Czy tekst naukowy wymaga innych definicji sentymentu?
+3. Jak opisać wpływ gatunku tekstu na klasyfikację?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o wpływie korpusu na wynik.]
+"
+```
+
+## ETAP CHALLENGE: projektujesz własne porównania
+
+## Zadanie 3: Trzy frameworki
+
+**Framework: RTF, CO-STAR, AUTOMAT**
+
+Porównanie frameworków powinno zachować stałe etykiety i korpus:
+
+- RTF: minimalna struktura rola-zadanie-format.
+- CO-STAR: kontekst, cel, styl, ton, odbiorca, odpowiedź.
+- AUTOMAT: precyzyjne ograniczenia, format i przypadki nietypowe.
+
+```{r zad3}
+moj_prompt_zad3_rtf <- "
+[CHALLENGE]
+Napisz własny prompt RTF do klasyfikacji sentymentu.
+
+Role:
+Task:
+Format: Zwróć tylko jedną etykietę: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+moj_prompt_zad3_costar <- "
+[CHALLENGE]
+Napisz własny prompt CO-STAR do tego samego zadania.
+
+Context:
+Objective:
+Style:
+Tone:
+Audience:
+Response: Jedna etykieta: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+moj_prompt_zad3_automat <- "
+[CHALLENGE]
+Napisz własny prompt AUTOMAT do tego samego zadania.
+
+Act as:
+User persona:
+Targeted action:
+Output definition: Jedna etykieta: pozytywny, negatywny albo neutralny.
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+wyniki_zad3 <- porownaj_frameworki(
+  korpus_polityczny,
+  list(RTF = moj_prompt_zad3_rtf, COSTAR = moj_prompt_zad3_costar, AUTOMAT = moj_prompt_zad3_automat),
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  model = "qwen3-4b",
+  n = 10
+)
+pokaz_porownanie(wyniki_zad3, c("RTF", "COSTAR", "AUTOMAT"), "Trzy frameworki")
+pokaz_tabele(wyniki_zad3)
+```
+
+### Pytania do refleksji
+
+1. Który framework najbardziej zmienia etykiety?
+2. Czy AUTOMAT lepiej obsługuje przypadki mieszane?
+3. Czy dłuższy prompt poprawia wynik, czy tylko zmienia decyzje?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o wpływie frameworka.]
+"
+```
+
+## Zadanie 4: Thinking vs non-thinking
+
+**Framework: kontrolowany eksperyment thinking**
+
+Tryb thinking porównujesz jak każdy inny czynnik:
+
+- ten sam model,
+- ten sam prompt,
+- ten sam korpus,
+- dwa tryby uruchomienia: `/think` i `/no_think`,
+- porównanie etykiet i czasu.
+
+```{r zad4}
+moj_prompt_zad4 <- "
+[CHALLENGE]
+Napisz własny prompt do eksperymentu thinking vs non-thinking.
+
+Wymagania:
+- to samo zadanie ma działać w trybie /think i /no_think,
+- odpowiedź końcowa ma być jedną etykietą: pozytywny, negatywny albo neutralny,
+- prompt powinien zawierać kryteria klasyfikacji sentymentu.
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- porownaj_thinking(
+  korpus_polityczny,
+  moj_prompt_zad4,
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  model = "qwen3-4b",
+  n = 8
+)
+pokaz_thinking_vs_not(wyniki_zad4)
+pokaz_tabele(wyniki_zad4)
+```
+
+### Pytania do refleksji
+
+1. Czy thinking zmienił etykiety?
+2. Czy różnica czasu jest widoczna?
+3. Czy ujawnione rozumowanie pomaga w walidacji, czy tylko w diagnozie?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o trybie thinking i non-thinking.]
+"
+```
+
+## Zadanie 5: Pełna macierz eksperymentu
+
+**Framework: projekt eksperymentu**
+
+W pełnej macierzy traktujesz wynik jako kombinację czynników:
+
+- korpus,
+- framework,
+- model,
+- etykieta końcowa.
+
+Nie interpretuj pojedynczego wyniku bez sprawdzenia, który czynnik go zmienił.
+
+```{r zad5}
+wyniki_zad5 <- eksperyment_pelny(
+  korpus_lista = list(polityczny = korpus_polityczny, naukowy = korpus_naukowy),
+  prompt_lista = list(RTF = moj_prompt_zad3_rtf, COSTAR = moj_prompt_zad3_costar, AUTOMAT = moj_prompt_zad3_automat),
+  model_lista = c("qwen3-0.6b", "bielik-4.5b", "qwen3-4b", "phi4-mini"),
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  n = 5
+)
+pokaz_macierz_eksperymentu(wyniki_zad5)
+pokaz_tabele_zbiorcza(wyniki_zad5)
+```
+
+### Pytania do refleksji
+
+1. Który czynnik wydaje się najsilniejszy?
+2. Czy model i framework oddziałują na siebie?
+3. Co trzeba byłoby policzyć, żeby porównanie było bardziej formalne?
+
+```{r zad5_refleksja}
+moja_interpretacja_zad5 <- "
+[Wpisz 5-8 zdań: który czynnik miał największy wpływ i skąd to widać?]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zad1 = wyniki_zad1, zad2 = wyniki_zad2, zad3 = wyniki_zad3, zad4 = wyniki_zad4, zad5 = wyniki_zad5),
+  spotkanie = "s05",
+  nazwa = "porownanie_modeli_frameworkow"
+)
+```

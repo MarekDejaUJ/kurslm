@@ -1,0 +1,224 @@
+---
+title: "Spotkanie 4: Analiza dyskursu i tonu"
+output: html_document
+---
+
+# Spotkanie 4: Analiza dyskursu i tonu
+
+W tym spotkaniu model nie tylko klasyfikuje emocje, ale rozpoznaje strategie retoryczne. To wymaga precyzyjnych definicji, przykładów i ostrożności wobec interpretacji nadmiarowej.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S04")
+```
+
+## ETAP LEARN: ćwiczymy z prowadzącym
+
+## Zadanie 1: Ton retoryczny
+
+**Framework: CRISPE**
+
+CRISPE jest przydatny, gdy klasyfikacja wymaga kontekstu i kryteriów:
+
+- **Capacity**: kompetencja lub rola modelu.
+- **Role**: perspektywa analityczna.
+- **Insight**: informacja, jak rozumieć materiał.
+- **Statement**: właściwe polecenie.
+- **Personality**: styl odpowiedzi.
+- **Experiment**: zasada testu, np. jedna etykieta bez komentarza.
+
+```{r zad1}
+moj_prompt_zad1 <- "
+Capacity: Pracujesz jako analityk retoryki politycznej.
+Role: Oceniasz dominujący ton fragmentu przemówienia.
+Insight: Ton inspiracyjny mobilizuje; pojednawczy łączy strony; konfrontacyjny wskazuje przeciwnika; informacyjny raportuje fakty; defensywny usprawiedliwia decyzje.
+Statement: Sklasyfikuj fragment do jednej kategorii.
+Personality: Zwięźle i technicznie.
+Experiment: Odpowiedz tylko jedną etykietą: inspiracyjny, pojednawczy, konfrontacyjny, informacyjny, defensywny.
+
+Tekst: {text}
+"
+
+wyniki_zad1 <- klasyfikuj_zbior(
+  korpus_polityczny,
+  moj_prompt_zad1,
+  etykiety = c("inspiracyjny", "pojednawczy", "konfrontacyjny", "informacyjny", "defensywny"),
+  model = "qwen3-4b",
+  n = 12
+)
+pokaz_rozklad(wyniki_zad1, "klasyfikacja", "Ton retoryczny")
+pokaz_tabele(wyniki_zad1)
+```
+
+### Pytania do refleksji
+
+1. Czy definicje tonów są rozłączne?
+2. Kiedy ton inspiracyjny może mylić się z pojednawczym?
+3. Czy model nadużywa jednej kategorii?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o tonie retorycznym.]
+"
+```
+
+## Zadanie 2: Strategia perswazji
+
+**Framework: Few-shot**
+
+Few-shot uczy model oczekiwanego sposobu kodowania przez przykłady:
+
+- Podaj krótkie przykłady wejścia i poprawnej etykiety.
+- Przykłady powinny być podobne do docelowego materiału.
+- Nie dawaj przykładów wieloznacznych jako wzorców.
+- Po przykładach jasno oddziel właściwy tekst do klasyfikacji.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Sklasyfikuj dominującą strategię perswazji w przemówieniu.
+
+Przykład: Musimy działać razem, bo tylko wspólnota pozwoli nam przetrwać kryzys.
+Etykieta: apel do jedności
+
+Przykład: Jeśli zignorujemy zagrożenie, nasze bezpieczeństwo będzie słabsze.
+Etykieta: apel do strachu
+
+Przykład: Nasz naród wielokrotnie udowodnił swoją siłę i odwagę.
+Etykieta: apel do dumy
+
+Przykład: Dane pokazują, że inwestycja obniży koszty i poprawi dostępność.
+Etykieta: apel do rozumu
+
+Odpowiedz tylko jedną etykietą: apel do strachu, apel do dumy, apel do jedności, apel do rozumu, brak.
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- klasyfikuj_zbior(
+  korpus_polityczny,
+  moj_prompt_zad2,
+  etykiety = c("apel do strachu", "apel do dumy", "apel do jedności", "apel do rozumu", "brak"),
+  model = "qwen3-4b",
+  n = 12
+)
+pokaz_rozklad(wyniki_zad2, "klasyfikacja", "Strategie perswazji")
+pokaz_tabele(wyniki_zad2)
+```
+
+### Pytania do refleksji
+
+1. Czy przykłady zdominowały decyzje modelu?
+2. Czy etykieta brak jest realnie używana?
+3. Jak dobrać przykłady, żeby nie sugerowały jednej odpowiedzi?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o działaniu few-shot.]
+"
+```
+
+## ETAP CHALLENGE: piszesz własne prompty
+
+## Zadanie 3: Techniki propagandowe
+
+**Framework: Chain-of-Thought**
+
+Chain-of-Thought służy do trudniejszych analiz, ale trzeba kontrolować wynik:
+
+- Poproś model o krótkie rozważenie kryteriów.
+- Wymuś końcową etykietę w jawnej formie.
+- Nie traktuj rozumowania modelu jako dowodu prawdziwości.
+- Sprawdzaj, czy uzasadnienie nie jest racjonalizacją błędnej etykiety.
+
+```{r zad3}
+moj_prompt_zad3 <- "
+[CHALLENGE]
+Napisz własny prompt Chain-of-Thought do wykrywania technik propagandowych.
+
+Wymagania:
+- podaj kryteria rozpoznawania propagandy,
+- poproś o krótkie rozważenie kryteriów,
+- wymuś końcową etykietę: propaganda, brak_propagandy albo niejednoznaczne.
+
+Tekst: {text}
+"
+
+wyniki_zad3 <- analizuj_cot(
+  korpus_polityczny,
+  moj_prompt_zad3,
+  etykiety = c("propaganda", "brak_propagandy", "niejednoznaczne"),
+  model = "qwen3-4b",
+  n = 8
+)
+pokaz_rozklad(wyniki_zad3, "klasyfikacja", "Techniki propagandowe")
+pokaz_tabele(wyniki_zad3)
+```
+
+### Pytania do refleksji
+
+1. Czy CoT poprawił ostrożność klasyfikacji?
+2. Czy uzasadnienia są powiązane z tekstem?
+3. W których przypadkach model przesadza z interpretacją?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań, analizując dwa przykłady z tabeli.]
+"
+```
+
+## Zadanie 4: Ramowanie bohatera i antagonisty
+
+**Framework: RISEN**
+
+RISEN pomaga przy analizie ramowania, bo prowadzi model przez kroki interpretacji:
+
+- **Role**: analityk ram interpretacyjnych.
+- **Input**: fragment dyskursu politycznego.
+- **Steps**: rozpoznaj bohatera, antagonistę i relację.
+- **Expectation**: jedna etykieta końcowa.
+- **Narrowing**: nie wymyślaj antagonistów, jeśli tekst ich nie tworzy.
+
+```{r zad4}
+moj_prompt_zad4 <- "
+[CHALLENGE]
+Uzupełnij prompt RISEN do analizy ramowania.
+
+Role:
+Input:
+Steps:
+Expectation: Odpowiedz tylko jedną etykietą: jednoczący, polaryzujący, opisowy.
+Narrowing:
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- klasyfikuj_zbior(
+  korpus_polityczny,
+  moj_prompt_zad4,
+  etykiety = c("jednoczący", "polaryzujący", "opisowy"),
+  model = "qwen3-4b",
+  n = 12
+)
+pokaz_rozklad(wyniki_zad4, "klasyfikacja", "Ramowanie")
+pokaz_tabele(wyniki_zad4)
+```
+
+### Pytania do refleksji
+
+1. Czy model odróżnia polaryzację od zwykłego konfliktu?
+2. Czy ramowanie jednoczące bywa mylone z inspiracyjnym tonem?
+3. Jak walidować tak interpretacyjną kategorię?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o ramowaniu w analizowanych fragmentach.]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zad1 = wyniki_zad1, zad2 = wyniki_zad2, zad3 = wyniki_zad3, zad4 = wyniki_zad4),
+  spotkanie = "s04",
+  nazwa = "analiza_dyskursu"
+)
+```

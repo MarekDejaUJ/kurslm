@@ -1,0 +1,311 @@
+---
+title: "Spotkanie 7: Analiza danych respondentów"
+output: html_document
+---
+
+# Spotkanie 7: Analiza danych respondentów
+
+Ostatnie spotkanie składa wcześniejsze elementy w mini-projekt: eksploracja danych, klasyfikacja, ekstrakcja, walidacja i raport metodologiczny.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S07")
+```
+
+## ETAP LEARN: budujemy pipeline z prowadzącym
+
+## Zadanie 1: Eksploracja danych
+
+**Framework: eksploracja przed modelowaniem**
+
+Zanim uruchomisz LLM:
+
+- sprawdź liczbę odpowiedzi,
+- obejrzyj długość odpowiedzi,
+- zobacz podstawowe metryki respondentów,
+- zanotuj, czy dane wyglądają wiarygodnie.
+
+```{r zad1}
+wyniki_zad1 <- respondenci
+pokaz_eksploracje(wyniki_zad1)
+pokaz_tabele(wyniki_zad1, "Próba danych respondentów", n = 10)
+```
+
+### Pytania do refleksji
+
+1. Czy odpowiedzi są podobnej długości?
+2. Czy metryki respondentów są zróżnicowane?
+3. Jakie ograniczenia ma taki syntetyczny zbiór?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o danych przed analizą LLM.]
+"
+```
+
+## Zadanie 2: Sentyment wobec korzyści AI
+
+**Framework: CO-STAR**
+
+CO-STAR pomaga opisać klasyfikację odpowiedzi ankietowych:
+
+- **Context**: odpowiedzi są krótkimi wypowiedziami profesjonalistów.
+- **Objective**: klasyfikujesz stosunek do korzyści AI.
+- **Style**: jedna etykieta.
+- **Tone**: bez oceniania respondenta.
+- **Audience**: badacz raportujący wyniki.
+- **Response**: zamknięta lista etykiet.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Context: Analizujesz odpowiedź ankietową pracownika instytucji kultury o korzyściach AI.
+Objective: Określ ogólny stosunek respondenta do korzyści AI.
+Style: Jedna etykieta.
+Tone: Neutralny, bez oceniania respondenta.
+Audience: Badacz przygotowujący raport.
+Response: Odpowiedz wyłącznie jedną etykietą: pozytywny, mieszany, sceptyczny, neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- klasyfikuj_odpowiedzi(
+  respondenci,
+  "pyt1_korzysci_ai",
+  moj_prompt_zad2,
+  etykiety = c("pozytywny", "mieszany", "sceptyczny", "neutralny"),
+  model = "bielik-4.5b",
+  n = 30
+)
+pokaz_rozklad(wyniki_zad2, "klasyfikacja", "Sentyment wobec korzyści AI")
+pokaz_tabele(wyniki_zad2)
+```
+
+### Pytania do refleksji
+
+1. Czy kategoria mieszany jest potrzebna?
+2. Czy model odróżnia sceptycyzm od neutralności?
+3. Jakie fragmenty warto ręcznie sprawdzić?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o klasyfikacji korzyści AI.]
+"
+```
+
+## ETAP CHALLENGE: prowadzisz własną analizę
+
+## Zadanie 3: Emocje w obawach wobec AI
+
+**Framework: AUTOMAT**
+
+AUTOMAT przy odpowiedziach ankietowych porządkuje granice kodowania:
+
+- **Act as**: koder jakościowy.
+- **User persona**: badacz analizujący obawy zawodowe.
+- **Targeted action**: dominująca emocja lub postawa.
+- **Output definition**: jedna etykieta.
+- **Mode / constraints**: koduj tylko na podstawie wypowiedzi.
+- **Atypical cases**: przy wielu emocjach wybierz dominującą.
+- **Topic**: obawy wobec AI w pracy.
+
+```{r zad3}
+moj_prompt_zad3 <- "
+[CHALLENGE]
+Uzupełnij prompt AUTOMAT do klasyfikacji emocji lub postaw w obawach wobec AI.
+
+Act as:
+User persona:
+Targeted action:
+Output definition: Jedna etykieta: lęk, nieufność, ostrożność, ciekawość, brak_obaw.
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+wyniki_zad3 <- klasyfikuj_odpowiedzi(
+  respondenci,
+  "pyt2_obawy_ai",
+  moj_prompt_zad3,
+  etykiety = c("lęk", "nieufność", "ostrożność", "ciekawość", "brak_obaw"),
+  model = "bielik-4.5b",
+  n = 30
+)
+pokaz_rozklad(wyniki_zad3, "klasyfikacja", "Emocje w obawach AI")
+pokaz_tabele(wyniki_zad3)
+```
+
+### Pytania do refleksji
+
+1. Czy lista emocji pasuje do danych?
+2. Czy ostrożność jest emocją czy postawą?
+3. Jak przebudować etykiety po pilotażu?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o emocjach i postawach w obawach.]
+"
+```
+
+## Zadanie 4: Tematy wizji przyszłości
+
+**Framework: RISEN**
+
+RISEN jest użyteczny przy ekstrakcji tematów, bo rozdziela kroki:
+
+- **Role**: analityk jakościowy.
+- **Input**: otwarta odpowiedź respondenta.
+- **Steps**: znajdź główny temat, ewentualny temat poboczny i ton.
+- **Expectation**: zwięzły wynik.
+- **Narrowing**: nie dopisuj tematów spoza wypowiedzi.
+
+```{r zad4}
+moj_prompt_zad4 <- "
+[CHALLENGE]
+Uzupełnij prompt RISEN do ekstrakcji tematów z wizji przyszłości.
+
+Role:
+Input:
+Steps:
+Expectation: Format: TEMAT_GŁÓWNY: ...; TEMAT_POBOCZNY: ...; TON: ...
+Narrowing:
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- wyciagnij_tematy(
+  respondenci,
+  "pyt3_przyszlosc",
+  moj_prompt_zad4,
+  model = "bielik-4.5b",
+  n_tematow = 8,
+  n = 30
+)
+pokaz_tabele(wyniki_zad4)
+pokaz_chmure(wyniki_zad4)
+```
+
+### Pytania do refleksji
+
+1. Czy tematy są spójne między odpowiedziami?
+2. Czy model rozdziela temat od tonu?
+3. Jak ręcznie zwalidować ekstrakcję tematów?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o tematach wizji przyszłości.]
+"
+```
+
+## Zadanie 5: Mała walidacja
+
+**Framework: mini złoty standard**
+
+Walidacja projektu końcowego może być mała, ale musi być jawna:
+
+- wybierz kilka odpowiedzi,
+- zakoduj je ręcznie przed oceną modelu,
+- porównaj predykcję z etykietą człowieka,
+- opisz ograniczenie małej próby.
+
+```{r zad5}
+moje_etykiety_zad5 <- c(
+  "[WPISZ ETYKIETĘ 1]",
+  "[WPISZ ETYKIETĘ 2]",
+  "[WPISZ ETYKIETĘ 3]",
+  "[WPISZ ETYKIETĘ 4]",
+  "[WPISZ ETYKIETĘ 5]"
+)
+
+zloty_standard_zad5 <- stworz_zloty_standard(
+  data.frame(id = wyniki_zad2$id[1:5], text = wyniki_zad2$pyt1_korzysci_ai[1:5], jezyk = "pl"),
+  etykiety_ludzkie = moje_etykiety_zad5,
+  n = 5
+)
+metryki_zad5 <- policz_metryki(
+  wyniki_zad2[1:5, ],
+  zloty_standard_zad5,
+  pred_col = "klasyfikacja",
+  truth_col = "etykieta_ludzka"
+)
+pokaz_tabele(zloty_standard_zad5, "Mini złoty standard")
+```
+
+### Pytania do refleksji
+
+1. Czy pięć odpowiedzi wystarcza do wniosku o jakości?
+2. Czy etykiety ludzkie były oczywiste?
+3. Co trzeba zwiększyć w pełnym badaniu?
+
+```{r zad5_refleksja}
+moja_interpretacja_zad5 <- "
+[Wpisz 3-5 zdań o miniwalidacji.]
+"
+```
+
+## Zadanie 6: Analiza krzyżowa
+
+**Framework: pytanie analityczne**
+
+Analiza krzyżowa wymaga konkretnego pytania:
+
+- jaka klasyfikacja jest wynikiem,
+- jaka cecha respondenta jest porównywana,
+- czy liczebności są wystarczające,
+- czy traktujesz wynik jako eksploracyjny.
+
+```{r zad6}
+wyniki_zad6 <- analiza_krzyzowa(
+  wyniki_zad2,
+  kolumna_klasyfikacja = "klasyfikacja",
+  kolumna_metryka = "typ_instytucji"
+)
+```
+
+### Pytania do refleksji
+
+1. Czy typ instytucji różnicuje sentyment?
+2. Czy próba jest wystarczająca do wnioskowania?
+3. Jak pokazać ten wynik w raporcie?
+
+```{r zad6_refleksja}
+moja_interpretacja_zad6 <- "
+[Wpisz 3-5 zdań o analizie krzyżowej.]
+"
+```
+
+## Zadanie 7: Mini-raport
+
+**Framework: IMRaD w wersji mini**
+
+Raport powinien mieć cztery krótkie części:
+
+- **Wstęp**: co analizujesz i dlaczego.
+- **Metoda**: dane, model, prompty, walidacja.
+- **Wyniki**: najważniejsze rozkłady i przykłady.
+- **Wnioski**: co można powiedzieć ostrożnie, a czego nie.
+
+```{r zad7}
+moja_interpretacja_zad7 <- "
+[Napisz mini-raport około 400 słów: wstęp, metoda, wyniki, wnioski.]
+"
+
+pokaz_podsumowanie_projektu(
+  list(
+    eksploracja = wyniki_zad1,
+    korzysci = wyniki_zad2,
+    obawy = wyniki_zad3,
+    tematy = wyniki_zad4,
+    walidacja = zloty_standard_zad5
+  )
+)
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(eksploracja = wyniki_zad1, korzysci = wyniki_zad2, obawy = wyniki_zad3, tematy = wyniki_zad4, walidacja = metryki_zad5, krzyzowa = wyniki_zad6, raport = moja_interpretacja_zad7),
+  spotkanie = "s07",
+  nazwa = "projekt_koncowy"
+)
+```

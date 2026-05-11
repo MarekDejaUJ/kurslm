@@ -1,0 +1,218 @@
+---
+title: "Spotkanie 1: Generowanie tekstu i pierwsze prompty"
+output: html_document
+---
+
+# Spotkanie 1: Generowanie tekstu i pierwsze prompty
+
+Na tym spotkaniu sprawdzasz, jak bardzo wynik modelu zalezy od instrukcji. Twoim zadaniem jest pisanie promptow, porownywanie odpowiedzi i nazywanie tego, co zmienia jakosc wyniku.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S01")
+```
+
+## ETAP LEARN: ćwiczymy z prowadzącym
+
+## Zadanie 1: Biblioteka przyszlosci
+
+**Framework: RTF**
+
+RTF porzadkuje prompt w trzech polach:
+
+- **Role**: kim ma byc model, np. konsultantem, badaczem, bibliotekarzem.
+- **Task**: co dokladnie ma wykonac i na jakim materiale.
+- **Format**: jaka ma byc dlugosc, struktura i styl odpowiedzi.
+
+Dobry RTF nie jest dlugi dla samej dlugosci. Jest jednoznaczny: model wie, z jakiej perspektywy pisze, co ma zrobic i jak ma wygladac odpowiedz.
+
+```{r zad1}
+moj_prompt_zad1 <- "
+Role: Jesteś bibliotekarzem akademickim, który projektuje nowoczesne usługi informacyjne.
+Task: Napisz po polsku opis biblioteki przyszłości. Uwzględnij użytkowników, dane, AI, etykę i rolę człowieka.
+Format: Około 200 słów, spokojny styl ekspercki, bez list punktowanych.
+"
+
+wyniki_zad1 <- generuj(moj_prompt_zad1, model = "bielik-4.5b")
+pokaz_tabele(wyniki_zad1, "Biblioteka przyszłości")
+```
+
+### Pytania do refleksji
+
+1. Czy model sam doprecyzował elementy, których nie było w prompcie?
+2. Które sformułowanie najmocniej ustawiło styl odpowiedzi?
+3. Czy odpowiedź brzmi jak tekst użytkowy, czy raczej jak ogólny esej?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań: co prompt zrobił dobrze, a co wymaga doprecyzowania?]
+"
+```
+
+## Zadanie 2: Jeden kontrolowany wariant
+
+**Framework: RTF**
+
+RTF warto stosować także wtedy, gdy zmieniasz tylko jeden element promptu. Wtedy porownanie jest metodologicznie czystsze: zmiana wyniku moze byc przypisana do konkretnej modyfikacji roli, zadania albo formatu.
+
+- **Role**: zachowaj albo zmien swiadomie.
+- **Task**: zmien tylko jeden warunek merytoryczny.
+- **Format**: zostaw taki sam, jesli porownujesz tresc.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Role: Jesteś bibliotekarzem akademickim, który projektuje nowoczesne usługi informacyjne.
+Task: Napisz po polsku opis biblioteki przyszłości. Tym razem skup się szczególnie na ryzykach: prywatności, błędach AI i wykluczeniu cyfrowym.
+Format: Około 200 słów, spokojny styl ekspercki, bez list punktowanych.
+"
+
+wyniki_zad2 <- generuj(moj_prompt_zad2, model = "bielik-4.5b")
+pokaz_tabele(wyniki_zad2, "Wariant kontrolowany")
+```
+
+### Pytania do refleksji
+
+1. Co zmieniło się po przesunięciu akcentu na ryzyka?
+2. Czy model zachował ten sam styl i poziom szczegółowości?
+3. Jak opisać różnicę między wynikiem zadania 1 i 2 bez oceniania intuicyjnego?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o tym, jak jedna zmiana promptu wpłynęła na wynik.]
+"
+```
+
+## ETAP CHALLENGE: piszesz własne prompty
+
+## Zadanie 3: Streszczenie naukowe
+
+**Framework: RTF**
+
+Przy generowaniu tekstu naukowego RTF pomaga oddzielić temat od oczekiwanego gatunku wypowiedzi.
+
+- **Role**: ustaw kompetencję autora.
+- **Task**: podaj temat i granice treści.
+- **Format**: wymuś strukturę abstraktu, liczbę słów i styl.
+
+```{r zad3}
+moj_prompt_zad3 <- "
+[CHALLENGE]
+Uzupełnij prompt zgodnie z RTF.
+
+Role:
+Task:
+Format:
+"
+
+wyniki_zad3 <- generuj(moj_prompt_zad3, model = "bielik-4.5b")
+pokaz_tabele(wyniki_zad3, "Abstrakt naukowy")
+```
+
+### Pytania do refleksji
+
+1. Czy odpowiedź ma elementy typowego abstraktu?
+2. Czy model rozróżnia wyniki od znaczenia badania?
+3. Jak można zmniejszyć ryzyko zmyślenia metod albo rezultatów?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o jakości wygenerowanego abstraktu.]
+"
+```
+
+## Zadanie 4: Ten sam prompt, dwa modele
+
+**Framework: porównanie kontrolowane**
+
+Porównanie modeli ma sens tylko wtedy, gdy kontrolujesz warunki:
+
+- ten sam prompt,
+- ten sam język,
+- ten sam typ zadania,
+- ta sama interpretacja kryteriów jakości.
+
+W tym zadaniu porównujesz model roboczy z małym modelem demonstracyjnym.
+
+```{r zad4}
+moj_prompt_zad4 <- "
+[CHALLENGE]
+Napisz własny prompt do porównania dwóch modeli.
+
+Wymagania:
+- temat: odpowiedzialne wdrożenie lokalnego modelu językowego w bibliotece,
+- odpowiedź po polsku,
+- format pozwalający łatwo porównać jakość obu modeli.
+"
+
+wyniki_zad4 <- porownaj_modele(
+  moj_prompt_zad4,
+  modele = c("bielik-4.5b", "qwen3-0.6b")
+)
+pokaz_tabele(wyniki_zad4, "Porównanie modeli")
+```
+
+### Pytania do refleksji
+
+1. Który model lepiej utrzymał instrukcję formatu?
+2. Czy mniejszy model popełnił błędy merytoryczne, stylistyczne czy strukturalne?
+3. Czy różnica jakości jest oczywista, czy wymaga kryteriów oceny?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o różnicach między modelami.]
+"
+```
+
+## Zadanie 5: Prompt słaby i prompt uporządkowany
+
+**Framework: RTF**
+
+W pełnym RTF nie wystarczy dopisać roli. Prompt powinien domykać trzy luki:
+
+- **Role**: kto mówi i z jakiej kompetencji.
+- **Task**: co dokładnie ma powstać oraz czego unikać.
+- **Format**: jak ma wyglądać odpowiedź, żeby dało się ją ocenić.
+
+Najpierw wpisz prompt celowo słaby, a potem prompt zgodny z RTF.
+
+```{r zad5}
+moj_prompt_zad5_zly <- "
+[CHALLENGE]
+Wpisz celowo słaby prompt: krótki, ogólny, bez roli, zadania i formatu.
+"
+
+moj_prompt_zad5_dobry <- "
+[CHALLENGE]
+Przepisz słaby prompt jako RTF.
+
+Role:
+Task:
+Format:
+"
+
+wyniki_zad5 <- porownaj_prompty(
+  list(slaby = moj_prompt_zad5_zly, rtf = moj_prompt_zad5_dobry),
+  model = "bielik-4.5b"
+)
+pokaz_tabele(wyniki_zad5, "Prompt słaby vs RTF")
+```
+
+### Pytania do refleksji
+
+1. Co model dopowiedział sam w słabym prompcie?
+2. Czy prompt RTF ograniczył ogólnikowość?
+3. Który wynik łatwiej ocenić według jawnych kryteriów?
+
+```{r zad5_refleksja}
+moja_interpretacja_zad5 <- "
+[Wpisz 3-5 zdań: czym różni się dobry prompt od złego?]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zad1 = wyniki_zad1, zad2 = wyniki_zad2, zad3 = wyniki_zad3, zad4 = wyniki_zad4, zad5 = wyniki_zad5),
+  spotkanie = "s01",
+  nazwa = "generowanie"
+)
+```

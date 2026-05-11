@@ -1,0 +1,264 @@
+---
+title: "Spotkanie 3: Ekstrakcja informacji"
+output: html_document
+---
+
+# Spotkanie 3: Ekstrakcja informacji
+
+Ekstrakcja różni się od klasyfikacji: model nie wybiera jednej etykiety, tylko przekształca tekst w strukturę. Najważniejsze są granice tego, co wolno wyciągać, oraz format odpowiedzi.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S03")
+```
+
+## ETAP LEARN: ćwiczymy z prowadzącym
+
+## Zadanie 1: Podmioty polityczne
+
+**Framework: AUTOMAT**
+
+AUTOMAT jest dobry do ekstrakcji, bo wymusza kompletność instrukcji:
+
+- **Act as**: rola modelu.
+- **User persona**: dla kogo wynik ma być użyteczny.
+- **Targeted action**: co dokładnie wyciągnąć.
+- **Output definition**: format odpowiedzi.
+- **Mode / constraints**: ograniczenia, np. nie zgaduj.
+- **Atypical cases**: co zrobić z przypadkami granicznymi.
+- **Topic**: dziedzina i typ tekstu.
+
+```{r zad1}
+moj_prompt_zad1 <- "
+Act as: Analityk tekstów politycznych.
+User persona: Badacz przygotowujący prostą listę aktorów występujących w przemówieniu.
+Targeted action: Wypisz podmioty polityczne: państwa, instytucje, organizacje, partie, narody albo nazwane osoby publiczne.
+Output definition: Jedna linia, elementy oddzielone średnikami. Jeśli brak, wpisz: brak.
+Mode / constraints: Nie wpisuj pojęć abstrakcyjnych, takich jak wolność, gospodarka albo przyszłość.
+Atypical cases: Jeśli nazwa jest niepełna, wpisz ją tylko wtedy, gdy nadal jednoznacznie oznacza aktora.
+Topic: Fragment przemówienia politycznego.
+
+Tekst: {text}
+"
+
+wyniki_zad1 <- wyciagnij_strukture(korpus_polityczny, moj_prompt_zad1, model = "qwen3-4b", n = 10)
+pokaz_tabele(wyniki_zad1)
+pokaz_siec_podmiotow(wyniki_zad1)
+```
+
+### Pytania do refleksji
+
+1. Czy model wpisuje pojęcia, które nie są podmiotami?
+2. Czy przypadki graniczne zostały dobrze obsłużone?
+3. Jak poprawić format, żeby wynik łatwiej kodować ilościowo?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o jakości ekstrakcji podmiotów.]
+"
+```
+
+## ETAP CHALLENGE: piszesz własne prompty
+
+## Zadanie 2: Terminy naukowe
+
+**Framework: AUTOMAT**
+
+Przy terminach naukowych AUTOMAT pomaga odróżnić termin od zwykłego słowa:
+
+- **Act as**: ekspert od informacji naukowej.
+- **User persona**: osoba budująca słownik pojęć.
+- **Targeted action**: wyciągnij terminy, nie tematy ogólne.
+- **Output definition**: krótka lista.
+- **Mode / constraints**: bez definicji, bez dopowiadania spoza tekstu.
+- **Atypical cases**: złożone wyrażenia zapisuj jako całość.
+- **Topic**: abstrakt lub fragment naukowy.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+[CHALLENGE]
+Uzupełnij prompt AUTOMAT do ekstrakcji terminów naukowych.
+
+Act as:
+User persona:
+Targeted action:
+Output definition:
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- wyciagnij_strukture(korpus_naukowy, moj_prompt_zad2, model = "qwen3-4b", n = 10)
+pokaz_tabele(wyniki_zad2)
+pokaz_chmure(wyniki_zad2)
+```
+
+### Pytania do refleksji
+
+1. Czy model wybiera terminy, czy słowa kluczowe?
+2. Czy ograniczenie do 6 terminów pomaga?
+3. Jak porównać listy terminów między fragmentami?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o ekstrakcji terminów.]
+"
+```
+
+## Zadanie 3: Temat, metoda, wynik
+
+**Framework: RISEN**
+
+RISEN porządkuje zadanie interpretacyjne:
+
+- **Role**: kim jest model.
+- **Input**: jaki materiał analizuje.
+- **Steps**: jakie kroki ma wykonać.
+- **Expectation**: jaki ma być poziom szczegółowości.
+- **Narrowing**: czego nie wolno dopisywać.
+
+```{r zad3}
+moj_prompt_zad3 <- "
+[CHALLENGE]
+Uzupełnij prompt RISEN do struktury TEMAT / METODA / WYNIK.
+
+Role:
+Input:
+Steps:
+Expectation:
+Narrowing:
+
+Tekst: {text}
+"
+
+wyniki_zad3 <- wyciagnij_strukture(korpus_naukowy, moj_prompt_zad3, model = "qwen3-4b", n = 10)
+pokaz_tabele(wyniki_zad3)
+```
+
+### Pytania do refleksji
+
+1. Czy model umie przyznać, że brakuje metody albo wyniku?
+2. Czy format jest wystarczająco stabilny?
+3. Jak można zmienić prompt, żeby wynik był tabelaryczny?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o strukturze TEMAT / METODA / WYNIK.]
+"
+```
+
+## Zadanie 4: Daty i wydarzenia
+
+**Framework: AUTOMAT**
+
+AUTOMAT przy danych faktograficznych powinien szczególnie pilnować zakazu zgadywania:
+
+- **Act as**: ekstraktor faktów.
+- **User persona**: osoba przygotowująca chronologię.
+- **Targeted action**: daty i powiązane wydarzenia.
+- **Output definition**: format data - wydarzenie.
+- **Mode / constraints**: tylko informacje obecne w tekście.
+- **Atypical cases**: gdy brak daty, wpisz brak.
+- **Topic**: tekst encyklopedyczny lub faktograficzny.
+
+```{r zad4}
+moj_prompt_zad4 <- "
+[CHALLENGE]
+Uzupełnij prompt AUTOMAT do ekstrakcji dat i wydarzeń.
+
+Act as:
+User persona:
+Targeted action:
+Output definition:
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- wyciagnij_strukture(korpus_faktograficzny, moj_prompt_zad4, model = "qwen3-4b", n = 10)
+pokaz_tabele(wyniki_zad4)
+```
+
+### Pytania do refleksji
+
+1. Czy model dopisał wiedzę spoza tekstu?
+2. Czy format był stabilny między fragmentami?
+3. Jak oznaczać wydarzenia bez daty?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o ekstrakcji dat i wydarzeń.]
+"
+```
+
+## Zadanie 5: AUTOMAT kontra RISEN
+
+**Framework: AUTOMAT i RISEN**
+
+Porównanie frameworków w ekstrakcji sprawdza nie tylko treść wyniku, ale też jego użyteczność:
+
+- AUTOMAT zwykle lepiej pilnuje formatu i przypadków nietypowych.
+- RISEN zwykle lepiej prowadzi analizę wieloetapową.
+- Ten sam fragment pozwala ocenić różnicę bez zmiany materiału.
+
+```{r zad5}
+moj_prompt_zad5_automat <- "
+[CHALLENGE]
+Napisz własny prompt AUTOMAT do ekstrakcji TEMAT / METODA / WYNIK.
+
+Act as:
+User persona:
+Targeted action:
+Output definition:
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+moj_prompt_zad5_risen <- "
+[CHALLENGE]
+Napisz własny prompt RISEN do tego samego zadania.
+
+Role:
+Input:
+Steps:
+Expectation:
+Narrowing:
+
+Tekst: {text}
+"
+
+wyniki_zad5 <- porownaj_frameworki(
+  korpus_naukowy,
+  list(AUTOMAT = moj_prompt_zad5_automat, RISEN = moj_prompt_zad5_risen),
+  model = "qwen3-4b",
+  n = 8
+)
+pokaz_tabele(wyniki_zad5)
+```
+
+### Pytania do refleksji
+
+1. Który framework dał bardziej stabilny format?
+2. Który był bardziej ostrożny wobec brakujących danych?
+3. Jak tę różnicę opisać w raporcie metodologicznym?
+
+```{r zad5_refleksja}
+moja_interpretacja_zad5 <- "
+[Wpisz 3-5 zdań porównujących AUTOMAT i RISEN.]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zad1 = wyniki_zad1, zad2 = wyniki_zad2, zad3 = wyniki_zad3, zad4 = wyniki_zad4, zad5 = wyniki_zad5),
+  spotkanie = "s03",
+  nazwa = "ekstrakcja"
+)
+```

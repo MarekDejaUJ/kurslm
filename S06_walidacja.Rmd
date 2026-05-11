@@ -1,0 +1,320 @@
+---
+title: "Spotkanie 6: Walidacja klasyfikacji LLM"
+output: html_document
+---
+
+# Spotkanie 6: Walidacja klasyfikacji LLM
+
+To spotkanie odpowiada na pytanie, czy wynikom można ufać. Przechodzisz od intuicyjnego oglądu do złotego standardu, test-retest, metryk trafności i triangulacji.
+
+```{r setup, message=FALSE, warning=FALSE}
+source("R/00_setup.R")
+przygotuj_spotkanie("S06")
+```
+
+## ETAP LEARN: walidujemy wspólnie z prowadzącym
+
+## Zadanie 1: Złoty standard
+
+**Framework: codebook**
+
+Złoty standard to nie tylko lista etykiet. To jawna decyzja kodera:
+
+- zdefiniuj kategorie przed oceną,
+- koduj fragmenty bez patrzenia na wynik modelu,
+- zapisuj przypadki niepewne,
+- nie poprawiaj etykiet po zobaczeniu metryk bez odnotowania zmiany.
+
+```{r zad1}
+moje_etykiety_zad1 <- c(
+  "neutralny", "neutralny", "neutralny", "neutralny", "neutralny",
+  "neutralny", "neutralny", "neutralny", "neutralny", "neutralny",
+  "neutralny", "neutralny", "neutralny", "neutralny", "neutralny",
+  "neutralny", "neutralny", "neutralny", "neutralny", "neutralny"
+)
+
+zloty_standard_zad1 <- stworz_zloty_standard(
+  korpus_polityczny,
+  etykiety_ludzkie = moje_etykiety_zad1,
+  n = 20
+)
+pokaz_tabele(zloty_standard_zad1, "Złoty standard")
+```
+
+### Pytania do refleksji
+
+1. Czy etykiety były łatwe do przypisania?
+2. Które fragmenty były niejednoznaczne?
+3. Jak dopisać codebook, żeby drugi koder rozumiał decyzje?
+
+```{r zad1_refleksja}
+moja_interpretacja_zad1 <- "
+[Wpisz 3-5 zdań o tworzeniu złotego standardu.]
+"
+```
+
+## Zadanie 2: Test-retest
+
+**Framework: RTF**
+
+W test-retest prompt musi być identyczny w każdym uruchomieniu:
+
+- **Role**: ta sama rola analityczna.
+- **Task**: ta sama definicja zadania.
+- **Format**: jedna etykieta z tej samej listy.
+
+Różnice między uruchomieniami pokazują niestabilność modelu lub nieostrość promptu.
+
+```{r zad2}
+moj_prompt_zad2 <- "
+Role: Jesteś analitykiem sentymentu w przemówieniach politycznych.
+Task: Sklasyfikuj dominujący sentyment fragmentu.
+Format: Odpowiedz wyłącznie jedną etykietą: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad2 <- test_retest(
+  korpus_polityczny,
+  moj_prompt_zad2,
+  model = "qwen3-4b",
+  k = 3,
+  n = 15,
+  etykiety = c("pozytywny", "negatywny", "neutralny")
+)
+pokaz_tabele(wyniki_zad2, "Test-retest")
+```
+
+### Pytania do refleksji
+
+1. Ile fragmentów ma pełną zgodność?
+2. Czy rozbieżności dotyczą jednej kategorii?
+3. Czy obniżenie temperatury mogłoby pomóc?
+
+```{r zad2_refleksja}
+moja_interpretacja_zad2 <- "
+[Wpisz 3-5 zdań o stabilności klasyfikacji.]
+"
+```
+
+## ETAP CHALLENGE: projektujesz własną walidację
+
+## Zadanie 3: Trafność wobec złotego standardu
+
+**Framework: metryki klasyfikacji**
+
+Metryki odpowiadają na różne pytania:
+
+- accuracy: ile decyzji jest zgodnych ogółem,
+- F1: jak model radzi sobie z klasami,
+- macierz pomyłek: w którą stronę model się myli,
+- analiza per klasa: czy problem dotyczy jednej kategorii.
+
+```{r zad3}
+metryki_zad3 <- policz_metryki(
+  wyniki_zad2,
+  zloty_standard_zad1,
+  pred_col = "run_1",
+  truth_col = "etykieta_ludzka"
+)
+pokaz_confusion_matrix(wyniki_zad2$run_1, zloty_standard_zad1$etykieta_ludzka[1:nrow(wyniki_zad2)])
+```
+
+### Pytania do refleksji
+
+1. Czy accuracy wystarczy do oceny?
+2. Która kategoria sprawia największy problem?
+3. Czy złoty standard jest wystarczająco duży?
+
+```{r zad3_refleksja}
+moja_interpretacja_zad3 <- "
+[Wpisz 3-5 zdań o trafności i ograniczeniach metryk.]
+"
+```
+
+## Zadanie 4: Kappa dla dwóch frameworków
+
+**Framework: porównanie zgodności**
+
+Cohen's kappa mierzy zgodność ponad przypadek:
+
+- porównuj te same fragmenty,
+- używaj tych samych etykiet,
+- interpretuj wynik razem z rozkładem klas,
+- nie traktuj kappa jako automatycznego dowodu trafności.
+
+```{r zad4}
+moj_prompt_zad4_rtf <- "
+[CHALLENGE]
+Napisz własny prompt RTF do klasyfikacji sentymentu na potrzeby porównania zgodności.
+
+Role:
+Task:
+Format: Zwróć tylko jedną etykietę: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+moj_prompt_zad4_costar <- "
+[CHALLENGE]
+Napisz własny prompt CO-STAR do tego samego zadania.
+
+Context:
+Objective:
+Style:
+Tone:
+Audience:
+Response: Odpowiedz jedną etykietą: pozytywny, negatywny albo neutralny.
+
+Tekst: {text}
+"
+
+wyniki_zad4 <- porownaj_frameworki_walidacja(
+  korpus_polityczny,
+  list(RTF = moj_prompt_zad4_rtf, COSTAR = moj_prompt_zad4_costar),
+  model = "qwen3-4b",
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  n = 12
+)
+kappa_zad4 <- policz_kappa(wyniki_zad4$RTF, wyniki_zad4$COSTAR)
+pokaz_tabele(wyniki_zad4, "RTF vs CO-STAR")
+```
+
+### Pytania do refleksji
+
+1. Czy wysoka zgodność oznacza poprawność?
+2. Czy oba frameworki mogą zgodnie się mylić?
+3. Jak rozkład klas wpływa na kappa?
+
+```{r zad4_refleksja}
+moja_interpretacja_zad4 <- "
+[Wpisz 3-5 zdań o zgodności między frameworkami.]
+"
+```
+
+## Zadanie 5: Alpha dla trzech klasyfikatorów
+
+**Framework: wielokoderowa zgodność**
+
+Krippendorff's alpha jest użyteczna, gdy masz więcej niż dwóch koderów:
+
+- każdy framework lub model traktujesz jak kodera,
+- porównujesz tę samą próbę,
+- klasy muszą mieć ten sam sens,
+- wynik interpretujesz razem z przykładami rozbieżności.
+
+```{r zad5}
+moj_prompt_zad5_automat <- "
+[CHALLENGE]
+Napisz własny prompt AUTOMAT jako trzeci klasyfikator do porównania.
+
+Act as:
+User persona:
+Targeted action:
+Output definition: Jedna etykieta: pozytywny, negatywny albo neutralny.
+Mode / constraints:
+Atypical cases:
+Topic:
+
+Tekst: {text}
+"
+
+wyniki_zad5 <- porownaj_frameworki_walidacja(
+  korpus_polityczny,
+  list(RTF = moj_prompt_zad4_rtf, COSTAR = moj_prompt_zad4_costar, AUTOMAT = moj_prompt_zad5_automat),
+  model = "qwen3-4b",
+  etykiety = c("pozytywny", "negatywny", "neutralny"),
+  n = 12
+)
+alpha_zad5 <- policz_alpha(wyniki_zad5[, c("RTF", "COSTAR", "AUTOMAT")])
+pokaz_tabele(wyniki_zad5, "Trzy klasyfikatory")
+```
+
+### Pytania do refleksji
+
+1. Czy trzy frameworki zgadzają się bardziej niż dwa?
+2. Czy jeden framework jest źródłem większości rozbieżności?
+3. Co alpha mówi, czego nie pokazuje sama tabela?
+
+```{r zad5_refleksja}
+moja_interpretacja_zad5 <- "
+[Wpisz 3-5 zdań o alpha i zgodności trzech klasyfikatorów.]
+"
+```
+
+## Zadanie 6: Analiza błędów
+
+**Framework: typologia błędów**
+
+Analiza błędów zamienia statystykę w diagnozę:
+
+- ambiguity: tekst jest naprawdę dwuznaczny,
+- literal_bias: model czyta zbyt dosłownie,
+- length_bias: długi fragment przesuwa decyzję,
+- lexical_trap: jedno słowo dominuje klasyfikację,
+- annotator_err: możliwy błąd kodera ludzkiego.
+
+```{r zad6}
+wyniki_zad6 <- analizuj_bledy(
+  wyniki_zad2,
+  zloty_standard_zad1,
+  pred_col = "run_1",
+  truth_col = "etykieta_ludzka",
+  n = 5
+)
+pokaz_tabele(wyniki_zad6, "Błędy do zakodowania")
+```
+
+### Pytania do refleksji
+
+1. Który typ błędu dominuje?
+2. Czy problem leży w prompcie, etykietach czy materiale?
+3. Co zmienić przed kolejną rundą klasyfikacji?
+
+```{r zad6_refleksja}
+moja_interpretacja_zad6 <- "
+[Wpisz 3-5 zdań o typologii błędów.]
+"
+```
+
+## Zadanie 7: Triangulacja z leksykonem
+
+**Framework: triangulacja**
+
+Triangulacja nie zakłada, że jedna metoda ma zawsze rację:
+
+- LLM daje interpretację kontekstową,
+- leksykon daje prostą, powtarzalną miarę,
+- złoty standard daje punkt odniesienia człowieka,
+- rozbieżności są materiałem do interpretacji.
+
+```{r zad7}
+wyniki_zad7 <- trianguluj(
+  korpus_polityczny,
+  wyniki_zad2,
+  pred_col = "run_1",
+  zloty_standard = zloty_standard_zad1
+)
+pokaz_triangulacje(wyniki_zad7, "LLM vs leksykon vs złoty standard")
+pokaz_tabele(wyniki_zad7)
+```
+
+### Pytania do refleksji
+
+1. Gdzie LLM i leksykon się różnią?
+2. Czy leksykon łapie retorykę polityczną?
+3. Jak opisać triangulację w części metodologicznej?
+
+```{r zad7_refleksja}
+moja_interpretacja_zad7 <- "
+[Wpisz akapit metodologiczny: czy klasyfikacje były wiarygodne?]
+"
+```
+
+```{r zapis}
+zapisz_wyniki(
+  list(zloty_standard = zloty_standard_zad1, test_retest = wyniki_zad2, metryki = metryki_zad3, kappa = kappa_zad4, alpha = alpha_zad5, bledy = wyniki_zad6, triangulacja = wyniki_zad7),
+  spotkanie = "s06",
+  nazwa = "walidacja"
+)
+```
