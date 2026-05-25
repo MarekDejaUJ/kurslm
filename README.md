@@ -27,7 +27,7 @@ flowchart TD
         J --> K["Wysłanie pracy: oddaj()"]
         L[Automatyczne wyrenderowanie PDF z sygnaturą czasową] -- w tle --> K
         M[Automatyczny Git Commit & Push na repozytorium studenta] -- w tle --> L
-        M --> N[Prowadzący pobiera repozytoria i uruchamia zbierz_prace()]
+        M --> N["Prowadzący pobiera repozytoria i uruchamia zbierz_prace()"]
     end
 ```
 
