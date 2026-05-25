@@ -100,24 +100,35 @@ Funkcja ta:
 
 ## Logowanie Ollama Cloud i Pstryczek Modelu
 
-W ramach kursu domyślnym zaawansowanym modelem polskim jest lokalny model `bielik-4.5b`. Jeżeli Twoja maszyna nie posiada wystarczającej ilości pamięci RAM (mniej niż 16 GB), możesz przełączyć się na darmowy, chmurowy model `minimax-m2.5:cloud`.
+W ramach kursu **domyślnie aktywny jest tryb chmurowy (Cloud)**, który wykorzystuje szybkie i dokładne modele z chmury Ollama. Oznacza to, że studenci nie muszą na starcie pobierać dużych modeli lokalnych ani posiadać mocnego sprzętu:
+- **Domyślny model standardowy:** `minimax-m2:cloud`
+- **Domyślny model zaawansowany:** `minimax-m2.5:cloud`
+
+Jeżeli maszyna studenta posiada przynajmniej 16 GB pamięci RAM (np. w pracowni komputerowej lub na mocnym laptopie) i chcesz uruchamiać modele lokalnie, możesz przełączyć pakiet w tryb lokalny.
 
 ### Przełączanie modeli (Pstryczek):
-* **Użycie chmury (Minimax):**
+* **Użycie modeli lokalnych (Bielik, PLLuM, Qwen3):**
+  ```r
+  uzyj_lokalnych()
+  ```
+  *W tym trybie pakiet będzie odpytywał modele zainstalowane lokalnie na maszynie (wymaga wcześniejszego pobrania przez `pobierz_modele()`).*
+* **Użycie modeli chmurowych (Minimax - domyślnie):**
   ```r
   uzyj_chmury()
   ```
-* **Powrót do modelu lokalnego (Bielik):**
-  ```r
-  uzyj_bielika()
-  ```
 
 ### Logowanie do chmury (Ollama Cloud):
-Aby korzystać z modelu chmurowego, musisz zalogować się do swojej instancji Ollama. Możesz to zrobić w terminalu systemowym:
+Aby korzystać z domyślnego trybu chmurowego, student musi być zalogowany do swojego konta Ollama. Można to zrobić w terminalu systemowym:
 ```bash
 ollama login
 ```
-Lub otwierając aplikację desktopową Ollama na komputerze i przechodząc przez proces uwierzytelnienia. W pracowniach komputerowych logowanie to należy powtórzyć po każdym restarcie systemu.
+Lub otwierając aplikację desktopową Ollama na komputerze i logując się w oknie programu. Na komputerach pracownianych (które resetują stan po wyłączeniu) logowanie to należy powtórzyć na początku każdych zajęć. Modele chmurowe są preinstalowane przez administratorów pracowni.
+
+### Lista modeli lokalnych do pobrania w trybie lokalnym:
+- **`Bielik-4.5b` (Q8_0 GGUF):** `hf.co/speakleash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0` (polski model zaawansowany)
+- **`PLLuM-4b` (Q4_K_M GGUF):** `hf.co/Jerzman/PLLuM-4B-instruct-2512-Q4_K_M-GGUF:Q4_K_M` (polski model lekki)
+- **`qwen3:4b`:** model myślący (angielski/wielojęzyczny)
+
 
 ---
 

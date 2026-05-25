@@ -146,7 +146,7 @@ Wymagania:
 
 wyniki_zad4 <- porownaj_modele(
   moj_prompt_zad4,
-  modele = c("bielik-4.5b", "qwen3-0.6b")
+  modele = c("bielik-4.5b", "pllum-4b")
 )
 pokaz_tabele(wyniki_zad4, "Porównanie modeli")
 ```

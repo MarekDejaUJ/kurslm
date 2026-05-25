@@ -3,38 +3,55 @@
 # Globalna lista modeli i domyslne konfiguracje
 .onLoad <- function(libname, pkgname) {
   MODELE <- list(
-    "qwen3-0.6b" = "qwen3:0.6b",
-    "bielik-4.5b" = "SpeakLeash/bielik-4.5b-v3.0-instruct",
-    "qwen3-4b" = "qwen3:4b",
-    "minimax-cloud" = "minimax-m2.5:cloud",
-    "qwen3-8b" = "qwen3:8b"
+    "minimax-m2"    = "minimax-m2:cloud",
+    "minimax-m2.5"  = "minimax-m2.5:cloud",
+    "bielik-4.5b"   = "hf.co/speakleash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0",
+    "pllum-4b"      = "hf.co/Jerzman/PLLuM-4B-instruct-2512-Q4_K_M-GGUF:Q4_K_M",
+    "qwen3-4b"      = "qwen3:4b"
   )
   
   if (is.null(getOption("kurs_modele"))) options(kurs_modele = MODELE)
-  if (is.null(getOption("kurs_model_pl"))) options(kurs_model_pl = MODELE[["bielik-4.5b"]])
-  if (is.null(getOption("kurs_model_en"))) options(kurs_model_en = MODELE[["qwen3-4b"]])
-  if (is.null(getOption("kurs_model_demo"))) options(kurs_model_demo = MODELE[["qwen3-0.6b"]])
-  if (is.null(getOption("kurs_model_porownanie"))) options(kurs_model_porownanie = MODELE[["minimax-cloud"]])
-  if (is.null(getOption("kurs_model_symulacja"))) options(kurs_model_symulacja = MODELE[["qwen3-8b"]])
+  if (is.null(getOption("kurs_tryb_lokalny"))) options(kurs_tryb_lokalny = FALSE)
+  
+  # Domyslnie (tryb chmurowy):
+  if (is.null(getOption("kurs_model_pl"))) options(kurs_model_pl = MODELE[["minimax-m2"]])
+  if (is.null(getOption("kurs_model_en"))) options(kurs_model_en = MODELE[["minimax-m2"]])
+  if (is.null(getOption("kurs_model_demo"))) options(kurs_model_demo = MODELE[["minimax-m2"]])
+  if (is.null(getOption("kurs_model_porownanie"))) options(kurs_model_porownanie = MODELE[["minimax-m2.5"]])
+  if (is.null(getOption("kurs_model_symulacja"))) options(kurs_model_symulacja = MODELE[["minimax-m2"]])
   if (is.null(getOption("kurs_tryb_mock"))) options(kurs_tryb_mock = FALSE)
 }
 
-#' Przelacz domyslny model polski na chmurowy minimax
+#' Przelacz srodowisko na modele chmurowe (Minimax m2 i m2.5) -- DOMYSLNE
 #' @export
 uzyj_chmury <- function() {
   modele <- getOption("kurs_modele")
-  options(kurs_model_pl = modele[["minimax-cloud"]])
-  cli::cli_alert_success("Przelaczono model polski na: {modele[['minimax-cloud']]} (Chmura)")
-  cli::cli_alert_info("Upewnij sie, ze jestes zalogowany do Ollama Cloud. Uruchom 'ollama login' w terminalu.")
+  options(kurs_tryb_lokalny = FALSE)
+  options(kurs_model_pl = modele[["minimax-m2"]])
+  options(kurs_model_en = modele[["minimax-m2"]])
+  options(kurs_model_demo = modele[["minimax-m2"]])
+  options(kurs_model_porownanie = modele[["minimax-m2.5"]])
+  options(kurs_model_symulacja = modele[["minimax-m2"]])
+  
+  cli::cli_alert_success("Przelaczono na modele CHMUROWE (Minimax Cloud).")
+  cli::cli_alert_info("Dystrybuowane zapytania beda automatycznie przekierowywane do minimax-m2:cloud i minimax-m2.5:cloud.")
+  cli::cli_alert_info("Upewnij sie, ze jestes zalogowany (uruchom 'ollama login' w terminalu systemowym).")
   invisible(TRUE)
 }
 
-#' Przelacz domyslny model polski na lokalny bielik
+#' Przelacz srodowisko na modele lokalne (Bielik, PLLuM, Qwen3)
 #' @export
-uzyj_bielika <- function() {
+uzyj_lokalnych <- function() {
   modele <- getOption("kurs_modele")
+  options(kurs_tryb_lokalny = TRUE)
   options(kurs_model_pl = modele[["bielik-4.5b"]])
-  cli::cli_alert_success("Przelaczono model polski na lokalny: {modele[['bielik-4.5b']]}")
+  options(kurs_model_en = modele[["qwen3-4b"]])
+  options(kurs_model_demo = modele[["pllum-4b"]])
+  options(kurs_model_porownanie = modele[["bielik-4.5b"]])
+  options(kurs_model_symulacja = modele[["pllum-4b"]])
+  
+  cli::cli_alert_success("Przelaczono na modele LOKALNE.")
+  cli::cli_alert_info("Pobierz je poleceniem: pobierz_modele()")
   invisible(TRUE)
 }
 

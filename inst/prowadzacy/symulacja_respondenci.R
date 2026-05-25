@@ -47,7 +47,7 @@ kurs_odpowiedz_fallback <- function(pytanie, ton) {
 }
 
 generuj_respondentow <- function(n_respondentow = 200, sciezka = "dane/respondenci_200.csv",
-                                model = "qwen3-8b", temperature = 0.9, thinking = TRUE,
+                                model = "minimax-m2", temperature = 0.9, thinking = TRUE,
                                 seed = 42) {
   set.seed(seed)
   dir.create(dirname(sciezka), showWarnings = FALSE, recursive = TRUE)

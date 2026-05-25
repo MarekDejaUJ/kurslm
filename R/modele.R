@@ -22,15 +22,44 @@ kurs_new_tibble <- function(...) {
 
 kurs_model_alias <- function(model) {
   modele <- getOption("kurs_modele", list())
+  tryb_lokalny <- isTRUE(getOption("kurs_tryb_lokalny", FALSE))
+  
   if (length(model) == 0 || is.null(model) || is.na(model)) {
+    model <- "auto"
+  }
+  
+  if (identical(model, "auto")) {
     return(getOption("kurs_model_pl"))
   }
-  if (identical(model, "auto")) {
-    return("auto")
+  
+  # Standardyzacja aliasu (jezeli podano pelna sciezke modelu lub zly alias)
+  alias <- model
+  if (model %in% c("SpeakLeash/bielik-4.5b-v3.0-instruct", "bielik-4.5b", "hf.co/speakleash/Bielik-4.5B-v3.0-Instruct-GGUF:Q8_0")) {
+    alias <- "bielik-4.5b"
+  } else if (model %in% c("pllum-4b", "hf.co/Jerzman/PLLuM-4B-instruct-2512-Q4_K_M-GGUF:Q4_K_M", "qwen3-0.6b")) {
+    alias <- "pllum-4b"
+  } else if (model %in% c("qwen3-4b", "qwen3:4b")) {
+    alias <- "qwen3-4b"
+  } else if (model %in% c("minimax-m2", "minimax-m2:cloud", "qwen3-8b", "qwen3:8b")) {
+    alias <- "minimax-m2"
+  } else if (model %in% c("minimax-m2.5", "minimax-m2.5:cloud", "minimax-cloud")) {
+    alias <- "minimax-m2.5"
   }
-  if (!is.null(modele[[model]])) {
-    return(modele[[model]])
+  
+  # Przekierowanie chmurowe (domyslnie tryb_lokalny = FALSE)
+  if (!tryb_lokalny) {
+    if (alias %in% c("bielik-4.5b", "pllum-4b", "minimax-m2")) {
+      return(modele[["minimax-m2"]])
+    } else if (alias %in% c("qwen3-4b", "minimax-m2.5")) {
+      return(modele[["minimax-m2.5"]])
+    }
   }
+  
+  # Tryb lokalny lub model spoza mapowania
+  if (!is.null(modele[[alias]])) {
+    return(modele[[alias]])
+  }
+  
   model
 }
 
