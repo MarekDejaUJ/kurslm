@@ -97,8 +97,18 @@ kurs_fallback_faktograficzny <- function() {
   )
 }
 
+#' Wczytaj korpus polityczny (SOTU)
+#' @export
 wczytaj_korpus_polityczny <- function(n = 80, sciezka = "dane/korpus_polityczny.rds",
                                       okno = 15, krok = 7, min_znakow = 500) {
+  # Sprawdzenie w zasobach pakietu, jesli sciezka jest domyslna
+  if (identical(sciezka, "dane/korpus_polityczny.rds")) {
+    pkg_path <- system.file("extdata", "korpus_polityczny.rds", package = "kurslm")
+    if (nzchar(pkg_path) && file.exists(pkg_path)) {
+      sciezka <- pkg_path
+    }
+  }
+  
   lokalny <- kurs_read_rds_if_exists(sciezka)
   if (!is.null(lokalny)) {
     return(utils::head(kurs_standard_korpus(lokalny, jezyk = "en", typ_korpusu = "polityczny", zrodlo = "lokalny RDS"), n))
@@ -128,7 +138,17 @@ wczytaj_korpus_polityczny <- function(n = 80, sciezka = "dane/korpus_polityczny.
   )
 }
 
+#' Wczytaj korpus naukowy
+#' @export
 wczytaj_korpus_naukowy <- function(n = 80, sciezka = "dane/korpus_naukowy.rds") {
+  # Sprawdzenie w zasobach pakietu, jesli sciezka jest domyslna
+  if (identical(sciezka, "dane/korpus_naukowy.rds")) {
+    pkg_path <- system.file("extdata", "korpus_naukowy.rds", package = "kurslm")
+    if (nzchar(pkg_path) && file.exists(pkg_path)) {
+      sciezka <- pkg_path
+    }
+  }
+
   lokalny <- kurs_read_rds_if_exists(sciezka)
   if (!is.null(lokalny)) {
     return(utils::head(kurs_standard_korpus(lokalny, jezyk = "en", typ_korpusu = "naukowy", zrodlo = "lokalny RDS"), n))
@@ -137,7 +157,17 @@ wczytaj_korpus_naukowy <- function(n = 80, sciezka = "dane/korpus_naukowy.rds") 
   kurs_standard_korpus(kurs_tibble(id = seq_len(length(teksty)), text = teksty), jezyk = "en", typ_korpusu = "naukowy", zrodlo = "fallback")
 }
 
+#' Wczytaj korpus faktograficzny
+#' @export
 wczytaj_korpus_faktograficzny <- function(n = 80, sciezka = "dane/korpus_faktograficzny.rds") {
+  # Sprawdzenie w zasobach pakietu, jesli sciezka jest domyslna
+  if (identical(sciezka, "dane/korpus_faktograficzny.rds")) {
+    pkg_path <- system.file("extdata", "korpus_faktograficzny.rds", package = "kurslm")
+    if (nzchar(pkg_path) && file.exists(pkg_path)) {
+      sciezka <- pkg_path
+    }
+  }
+
   lokalny <- kurs_read_rds_if_exists(sciezka)
   if (!is.null(lokalny)) {
     return(utils::head(kurs_standard_korpus(lokalny, jezyk = "en", typ_korpusu = "faktograficzny", zrodlo = "lokalny RDS"), n))
@@ -146,7 +176,17 @@ wczytaj_korpus_faktograficzny <- function(n = 80, sciezka = "dane/korpus_faktogr
   kurs_standard_korpus(kurs_tibble(id = seq_len(length(teksty)), text = teksty), jezyk = "en", typ_korpusu = "faktograficzny", zrodlo = "fallback")
 }
 
+#' Wczytaj respondentow
+#' @export
 wczytaj_respondentow <- function(sciezka = "dane/respondenci_200.csv", n = 200) {
+  # Sprawdzenie w zasobach pakietu, jesli sciezka jest domyslna
+  if (identical(sciezka, "dane/respondenci_200.csv")) {
+    pkg_path <- system.file("extdata", "respondenci_200.csv", package = "kurslm")
+    if (nzchar(pkg_path) && file.exists(pkg_path)) {
+      sciezka <- pkg_path
+    }
+  }
+
   if (file.exists(sciezka)) {
     if (requireNamespace("readr", quietly = TRUE)) {
       dane <- readr::read_csv(sciezka, show_col_types = FALSE)
@@ -189,6 +229,8 @@ wczytaj_respondentow <- function(sciezka = "dane/respondenci_200.csv", n = 200) 
   kurs_as_tibble(dane)
 }
 
+#' Przygotuj srodowisko pod konkretne spotkanie
+#' @export
 przygotuj_spotkanie <- function(spotkanie, env = parent.frame()) {
   spotkanie <- toupper(gsub("_", "", spotkanie))
   if (spotkanie %in% c("S01", "01")) {

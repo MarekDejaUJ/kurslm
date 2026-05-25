@@ -126,7 +126,7 @@ zapytaj <- function(prompt, model = "auto", temperature = 0.3, thinking = NULL, 
       wynik <- paste0("Odpowiedz testowa modelu ", model_docelowy, ": ", substr(prompt_wysylany, 1, 120))
     } else {
       if (!requireNamespace("rollama", quietly = TRUE)) {
-        stop("Brakuje pakietu rollama. Uruchom source('R/00_setup.R') z wlaczona instalacja pakietow.")
+        stop("Brakuje pakietu rollama. Uruchom library(kurslm) w celu instalacji i weryfikacji srodowiska.")
       }
 
       ostatni_blad <- NULL

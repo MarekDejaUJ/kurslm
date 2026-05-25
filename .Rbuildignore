@@ -1,0 +1,7 @@
+^renv$
+^renv\.lock$
+^archiwum$
+^dane$
+^wyniki$
+^data-raw$
+^\.antigravitycli$

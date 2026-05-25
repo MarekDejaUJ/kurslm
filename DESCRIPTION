@@ -1,0 +1,34 @@
+Package: kurslm
+Type: Package
+Title: LLM w Analizie Tekstu dla Profesjonalistów Informacji
+Version: 1.0.0
+Date: 2026-05-25
+Author: Marek Deja
+Maintainer: Marek Deja <marek.deja@uj.edu.pl>
+Description: Pakiet wspomagajacy seminarium z wykorzystania modeli LLM w analizie tekstu. Zawiera skrypty, dane korpusów, szablony Rmd i funkcje diagnostyczne.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports:
+    rollama,
+    ggplot2,
+    gt,
+    readr,
+    rmarkdown,
+    knitr,
+    tinytex,
+    sotu,
+    gutenbergr,
+    cli,
+    glue,
+    dplyr,
+    tidyr,
+    purrr,
+    stringr,
+    tibble,
+    igraph,
+    syuzhet,
+    irr,
+    yardstick,
+    wordcloud2
+RoxygenNote: 7.2.3

@@ -8,7 +8,7 @@ output: html_document
 W tym spotkaniu model nie tylko klasyfikuje emocje, ale rozpoznaje strategie retoryczne. To wymaga precyzyjnych definicji, przykładów i ostrożności wobec interpretacji nadmiarowej.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S04")
 ```
 

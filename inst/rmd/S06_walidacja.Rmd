@@ -8,7 +8,7 @@ output: html_document
 To spotkanie odpowiada na pytanie, czy wynikom można ufać. Przechodzisz od intuicyjnego oglądu do złotego standardu, test-retest, metryk trafności i triangulacji.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S06")
 ```
 

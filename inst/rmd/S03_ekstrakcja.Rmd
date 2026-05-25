@@ -8,7 +8,7 @@ output: html_document
 Ekstrakcja różni się od klasyfikacji: model nie wybiera jednej etykiety, tylko przekształca tekst w strukturę. Najważniejsze są granice tego, co wolno wyciągać, oraz format odpowiedzi.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S03")
 ```
 

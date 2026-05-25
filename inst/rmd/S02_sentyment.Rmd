@@ -8,7 +8,7 @@ output: html_document
 To spotkanie przechodzi od generowania do klasyfikacji. Pracujesz na korpusie politycznym i naukowym, a wynik modelu traktujesz jak decyzję analityczną, którą trzeba umieć uzasadnić metodologicznie.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S02")
 ```
 

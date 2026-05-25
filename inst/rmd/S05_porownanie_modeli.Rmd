@@ -8,7 +8,7 @@ output: html_document
 Tu traktujesz model, framework, korpus i tryb thinking jako czynniki eksperymentu. Celem nie jest znalezienie jednej najlepszej odpowiedzi, ale zobaczenie, co najbardziej zmienia wynik.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S05")
 ```
 

@@ -1,8 +1,8 @@
 # Skrypt prowadzacego: generowanie danych respondentow.
-# Ten plik nie jest zrodlowany automatycznie przez 00_setup.R.
+# Ten plik nie jest automatycznie uruchamiany przy ladowaniu pakietu.
 
 if (!exists("zapytaj", mode = "function")) {
-  source("R/00_setup.R", encoding = "UTF-8")
+  library(kurslm)
 }
 
 kurs_losuj_profil <- function(id) {

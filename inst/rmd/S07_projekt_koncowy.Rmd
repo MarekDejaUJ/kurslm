@@ -8,7 +8,7 @@ output: html_document
 Ostatnie spotkanie składa wcześniejsze elementy w mini-projekt: eksploracja danych, klasyfikacja, ekstrakcja, walidacja i raport metodologiczny.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S07")
 ```
 

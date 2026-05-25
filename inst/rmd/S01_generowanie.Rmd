@@ -8,7 +8,7 @@ output: html_document
 Na tym spotkaniu sprawdzasz, jak bardzo wynik modelu zalezy od instrukcji. Twoim zadaniem jest pisanie promptow, porownywanie odpowiedzi i nazywanie tego, co zmienia jakosc wyniku.
 
 ```{r setup, message=FALSE, warning=FALSE}
-source("R/00_setup.R")
+library(kurslm)
 przygotuj_spotkanie("S01")
 ```
 
